@@ -1,39 +1,37 @@
 ArrayList<Chunk> land = new ArrayList<Chunk>();
 
-int MIN_SIZE = 10;
-int MAX_SIZE = 100;
+int TERRAIN_SIZE = 50;
+int landwidth;
+int landlength;
 
 void setup() {
-  size(1000, 800);
+  size(1000, 1000);
   noStroke();
-  for (int i = 0; i  < 10; i++) {
-    land.add(new Chunk(random(0.1, 3)));
-  }
+
+  landwidth = width / TERRAIN_SIZE;
+  landlength = height / TERRAIN_SIZE;
+
+  generateLand(0, 0.15);
 }
 
 void draw() {
   background(0);
-  for (int i = 0; i < 10; i++) {
-    land.get(i).display();
+  displayLand();
+}
+
+void generateLand(float seed, float frequency) {
+  noiseDetail(2);
+  for (int y = 0; y < landlength; y++) {
+    for (int x = 0; x < landwidth; x++) {
+      land.add(new Chunk(noise(x * frequency, y * frequency) * 255, x, y));
+    }
   }
 }
 
-void saveLand(int min, int max, int n) {
-  String entries = "";
-  float x1, y1;
-  for (int i = 0; i < n; i++) {
-    entries += str(random(0.1, 3)); // saving g
-
-    // pvector 1
-    x1 = random(0, width - min);
-    y1 = random(0, height - min);
-    entries += ',' + str(x1);
-    entires += ',' + str(y1);
-
-    // pvector 2
-    entires += ',' + str(x1 + random(max));
-    entries += ',' + str(y1 + random(max));
-
-    // TODO: continue here
+void displayLand() {
+  for (int y = 0; y < landlength; y++) {
+    for (int x = 0; x < landwidth; x++) {
+      land.get(y * landwidth + x).display();
+    }
   }
 }

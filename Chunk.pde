@@ -1,32 +1,30 @@
 class Chunk {
-  PVector startPt, endPt;
+  PVector location;
   float growth;
-  float area;
   float vegitation = 0;
+  float maxveg;
 
-  Chunk(float g) {
-    startPt = new PVector(random(0, width - MIN_SIZE), random(0, height - MIN_SIZE));
-    endPt   = new PVector(random(startPt.x, startPt.x + MAX_SIZE),
-                      random(startPt.y, startPt.y + MAX_SIZE));
-    area = (startPt.x - endPt.x) * (startPt.y - endPt.y);
-    growth = g * area / 1000;
-  }
+  private final int low_cutoff = 55;
+  private final int high_cutoff = 190;
+  private final float default_grow_rate = 1;
 
-  Chunk(float g, int x1, int y1, int x2, int y2) {
-    startPt = new PVector(x1, y1);
-    endPt   = new PVector(x2, y2);
-    area = (startPt.x - endPt.x) * (startPt.y - endPt.y);
-    growth  = g * area / 1000;
+  Chunk(float g, int x, int y) {
+    location = new PVector(x * TERRAIN_SIZE, y * TERRAIN_SIZE);
+    growth  = default_grow_rate;
+    if (g < low_cutoff) maxveg = 0;
+    else if (g > high_cutoff) maxveg = 255;
+    else maxveg = g;
   }
 
   void display() {
-    fill(map(vegitation, 0, area, 0, 255));
-    rect(startPt.x, startPt.y, endPt.x, endPt.y);
+    fill(vegitation);
+    rect(location.x, location.y,
+      location.x + TERRAIN_SIZE, location.y + TERRAIN_SIZE);
     update();
   }
 
   void update() {
-    if (vegitation < area) {
+    if (vegitation < maxveg) {
       vegitation += growth;
     }
   }
