@@ -1,6 +1,6 @@
 public ArrayList<PVector> road = new ArrayList<PVector>();
-final int MIN_ROADWIDTH = 90;
-final int MAX_ROADWIDTH = 200;
+final int MIN_ROADWIDTH = 50;
+final int MAX_ROADWIDTH = 130;
 final int MIN_ROADCENTER = 100;
 final int MAX_ROADCENTER = 300;
 public Insect DUT;
@@ -9,7 +9,7 @@ void setup() {
   size(400, 1000);
   noFill();
 
-  generateRoad(31415, 0.01, 0.005);
+  generateRoad(31415, 0.005, 0.005);
 
   DUT = new Insect();
 }

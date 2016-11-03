@@ -50,9 +50,14 @@ class Insect {
   }
 
   private void update() {
-    // move the insect in a direction at a certain speed
-    position.x +=   sin(heading) * speed;
-    position.y += - cos(heading) * speed;
+    float next_x = position.x + sin(heading) * speed;
+    float next_y = position.y - cos(heading) * speed;
+
+    if (next_x > 0 && next_x < width && next_y > 0 && next_y < height) {
+      // move the insect in a direction at a certain speed
+      position.x = next_x;
+      position.y = next_y;
+    }
 
     // update vision points
     updateVision();

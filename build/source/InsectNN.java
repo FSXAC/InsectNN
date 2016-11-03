@@ -15,8 +15,8 @@ import java.io.IOException;
 public class InsectNN extends PApplet {
 
 public ArrayList<PVector> road = new ArrayList<PVector>();
-final int MIN_ROADWIDTH = 90;
-final int MAX_ROADWIDTH = 200;
+final int MIN_ROADWIDTH = 50;
+final int MAX_ROADWIDTH = 130;
 final int MIN_ROADCENTER = 100;
 final int MAX_ROADCENTER = 300;
 public Insect DUT;
@@ -25,7 +25,7 @@ public void setup() {
   
   noFill();
 
-  generateRoad(31415, 0.01f, 0.005f);
+  generateRoad(31415, 0.005f, 0.005f);
 
   DUT = new Insect();
 }
@@ -97,9 +97,14 @@ class Insect {
   }
 
   private void update() {
-    // move the insect in a direction at a certain speed
-    position.x +=   sin(heading) * speed;
-    position.y += - cos(heading) * speed;
+    float next_x = position.x + sin(heading) * speed;
+    float next_y = position.y - cos(heading) * speed;
+
+    if (next_x > 0 && next_x < width && next_y > 0 && next_y < height) {
+      // move the insect in a direction at a certain speed
+      position.x = next_x;
+      position.y = next_y;
+    }
 
     // update vision points
     updateVision();
