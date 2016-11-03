@@ -59,14 +59,21 @@ class Insect {
 
   PVector visionL, visionLC, visionC, visionRC, visionR;
 
-  private final int visionC_range = 100;
+  private final int visionC_range = 80;
+  private final int visionM_range = 50;
+  private final int visionS_range = 30;
 
   Insect() {
     position = new PVector(width / 2, 900);
     heading = 0;
     speed = 1;
 
-    visionC = new PVector(0, 0);
+    // instantiate vision points
+    visionL  = new PVector(0, 0);
+    visionLC = new PVector(0, 0);
+    visionC  = new PVector(0, 0);
+    visionRC = new PVector(0, 0);
+    visionR  = new PVector(0, 0);
   }
 
   public void display() {
@@ -75,11 +82,23 @@ class Insect {
     ellipse(position.x, position.y, 20, 20);
 
     // draw vision vector
-    ellipse(visionC.x, visionC.y, 10, 10);
-    line(visionC.x, visionC.y, position.x, position.y);
+    displayVision();
 
     displayInfo();
     update();
+  }
+
+  public void displayVision() {
+    ellipse(visionL.x, visionL.y, 10, 10);
+    ellipse(visionLC.x, visionLC.y, 10, 10);
+    ellipse(visionC.x, visionC.y, 10, 10);
+    ellipse(visionRC.x, visionRC.y, 10, 10);
+    ellipse(visionR.x, visionR.y, 10, 10);
+    line(visionL.x, visionL.y, position.x, position.y);
+    line(visionLC.x, visionLC.y, position.x, position.y);
+    line(visionC.x, visionC.y, position.x, position.y);
+    line(visionRC.x, visionRC.y, position.x, position.y);
+    line(visionR.x, visionR.y, position.x, position.y);
   }
 
   public void displayInfo() {
@@ -95,9 +114,31 @@ class Insect {
     position.x +=   sin(heading) * speed;
     position.y += - cos(heading) * speed;
 
+    // update vision points
+    updateVision();
+  }
+
+  private void updateVision() {
     // change vision vectors
+    // [L]
+    visionL.x = position.x + sin(heading - PI / 2) * visionS_range;
+    visionL.y = position.y - cos(heading - PI / 2) * visionS_range;
+
+    // [LC]
+    visionLC.x = position.x + sin(heading - PI / 4) * visionM_range;
+    visionLC.y = position.y - cos(heading - PI / 4) * visionM_range;
+
+    // [C]
     visionC.x = position.x + sin(heading) * visionC_range;
     visionC.y = position.y - cos(heading) * visionC_range;
+
+    // [RC]
+    visionRC.x = position.x + sin(heading + PI / 4) * visionM_range;
+    visionRC.y = position.y - cos(heading + PI / 4) * visionM_range;
+
+    // [R]
+    visionR.x = position.x + sin(heading + PI / 2) * visionS_range;
+    visionR.y = position.y - cos(heading + PI / 2) * visionS_range;
   }
 }
   public void settings() {  size(400, 1000); }
