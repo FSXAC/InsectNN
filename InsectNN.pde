@@ -1,14 +1,15 @@
-ArrayList<PVector> road = new ArrayList<PVector>();
-
-final int ROADMARGIN = 50;
-
-Insect DUT;
+public ArrayList<PVector> road = new ArrayList<PVector>();
+final int MIN_ROADWIDTH = 90;
+final int MAX_ROADWIDTH = 200;
+final int MIN_ROADCENTER = 100;
+final int MAX_ROADCENTER = 300;
+public Insect DUT;
 
 void setup() {
   size(400, 1000);
-  noStroke();
+  noFill();
 
-  generateRoad(31415, 0.005);
+  generateRoad(31415, 0.01, 0.005);
 
   DUT = new Insect();
 }
@@ -20,27 +21,11 @@ void draw() {
   DUT.display();
 }
 
-void generateRoad(long seed, float frequency) {
-  noiseSeed(seed);
-  for (int row = 0; row < height; row++) {
-    road.add(new PVector(map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
-    map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
-  }
-}
+// keyboard inputs
+void keyPressed() {
+  if      (key == 'a') DUT.changeHeading(-0.1);
+  else if (key == 'd') DUT.changeHeading(0.1);
 
-void drawRoad() {
-  for (int row = 0; row < height; row++) {
-    stroke(255);
-    point(road.get(row).x, row);
-    point(road.get(row).y, row);
-  }
-}
-
-// returns true if a test point is on the road (within the center road)
-boolean isOnRoad(PVector point) {
-  if (point.y < height) {
-    return (point.x >= road.get(int(point.y)).x && point.x <= road.get(int(point.y)).y);
-  } else {
-    return false;
-  }
+  if      (key == 'w') DUT.changeSpeed(0.1);
+  else if (key == 's') DUT.changeSpeed(-0.1);
 }

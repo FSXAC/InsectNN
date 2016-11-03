@@ -14,17 +14,18 @@ import java.io.IOException;
 
 public class InsectNN extends PApplet {
 
-ArrayList<PVector> road = new ArrayList<PVector>();
-
-final int ROADMARGIN = 50;
-
-Insect DUT;
+public ArrayList<PVector> road = new ArrayList<PVector>();
+final int MIN_ROADWIDTH = 90;
+final int MAX_ROADWIDTH = 200;
+final int MIN_ROADCENTER = 100;
+final int MAX_ROADCENTER = 300;
+public Insect DUT;
 
 public void setup() {
   
-  noStroke();
+  noFill();
 
-  generateRoad(31415, 0.005f);
+  generateRoad(31415, 0.01f, 0.005f);
 
   DUT = new Insect();
 }
@@ -34,33 +35,15 @@ public void draw() {
   drawRoad();
 
   DUT.display();
-
-  if (!isOnRoad(new PVector(mouseX, mouseY))) ellipse(mouseX, mouseY, 20, 20);
 }
 
-public void generateRoad(long seed, float frequency) {
-  noiseSeed(seed);
-  for (int row = 0; row < height; row++) {
-    road.add(new PVector(map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
-    map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
-  }
-}
+// keyboard inputs
+public void keyPressed() {
+  if      (key == 'a') DUT.changeHeading(-0.1f);
+  else if (key == 'd') DUT.changeHeading(0.1f);
 
-public void drawRoad() {
-  for (int row = 0; row < height; row++) {
-    stroke(255);
-    point(road.get(row).x, row);
-    point(road.get(row).y, row);
-  }
-}
-
-// returns true if a test point is on the road (within the center road)
-public boolean isOnRoad(PVector point) {
-  if (point.y < height) {
-    return (point.x >= road.get(PApplet.parseInt(point.y)).x && point.x <= road.get(PApplet.parseInt(point.y)).y);
-  } else {
-    return false;
-  }
+  if      (key == 'w') DUT.changeSpeed(0.1f);
+  else if (key == 's') DUT.changeSpeed(-0.1f);
 }
 class Insect {
   // insect properties
@@ -74,7 +57,7 @@ class Insect {
 
   Insect() {
     position = new PVector(width / 2, 900);
-    heading = 0;
+    heading = 2 * PI;
     speed = 1;
 
     // instantiate vision points
@@ -84,8 +67,8 @@ class Insect {
   }
 
   public void display() {
-    noFill();
-    stroke(255, 0, 0);
+    if (isOnRoad(position)) stroke(0, 255, 0);
+    else stroke(255, 0, 0);
     ellipse(position.x, position.y, 20, 20);
 
     // draw vision vector
@@ -107,14 +90,13 @@ class Insect {
   }
 
   public void displayInfo() {
+    text("FPS: " + frameRate, 5, 0);
     text("X: " + position.x + ", Y: " + position.y, 5, 10);
-    text("Heading: " + heading, 5, 20);
-    text("FPS: " + frameRate, 5, 30);
+    text("Heading: " + (heading / PI) + "PI, " + (heading / PI * 180) + "deg", 5, 20);
+    text("Speed: " + speed, 5, 30);
   }
 
   private void update() {
-    heading = map(mouseX, 0, width, 0, 2 * PI);
-
     // move the insect in a direction at a certain speed
     position.x +=   sin(heading) * speed;
     position.y += - cos(heading) * speed;
@@ -131,6 +113,55 @@ class Insect {
       visions[i + 2].x = position.x + sin(heading + (i * PI / 4)) * vision_range * range_mult;
       visions[i + 2].y = position.y - cos(heading + (i * PI / 4)) * vision_range * range_mult;
     }
+  }
+
+  public void changeSpeed(float d_speed) {
+    speed += d_speed;
+  }
+
+  public void changeHeading(float d_heading) {
+    heading += d_heading;
+    if (heading > 2 * PI) heading -= 2 * PI;
+    else if (heading < 0) heading = 2 * PI - heading;
+  }
+}
+public void generateRoad(long seed, float width_freq, float center_freq) {
+  noiseSeed(seed);
+  for (int row = 0; row < height; row++) {
+    // road.add(new PVector(
+    //   map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
+    //   map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
+
+    // get width of the road
+    float roadwidth  = map(noise(row * width_freq), 0, 1, MIN_ROADWIDTH, MAX_ROADWIDTH);
+
+    // get center of the road
+    float roadcenter = map(noise(row * center_freq), 0, 1, MIN_ROADCENTER, MAX_ROADCENTER);
+
+    road.add(new PVector(
+      roadcenter - roadwidth / 2, roadcenter + roadwidth / 2
+      ));
+
+    // road.add(new PVector(
+    //   map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
+    //   map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
+  }
+}
+
+public void drawRoad() {
+  for (int row = 0; row < height; row++) {
+    stroke(255);
+    point(road.get(row).x, row);
+    point(road.get(row).y, row);
+  }
+}
+
+// returns true if a test point is on the road (within the center road)
+public boolean isOnRoad(PVector point) {
+  if (point.y < height && point.y >= 0) {
+    return (point.x >= road.get(PApplet.parseInt(point.y)).x && point.x <= road.get(PApplet.parseInt(point.y)).y);
+  } else {
+    return false;
   }
 }
   public void settings() {  size(400, 1000); }
