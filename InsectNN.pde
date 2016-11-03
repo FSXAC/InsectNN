@@ -1,37 +1,33 @@
-ArrayList<Chunk> land = new ArrayList<Chunk>();
+ArrayList<PVector> road = new ArrayList<PVector>();
 
-int TERRAIN_SIZE = 50;
-int landwidth;
-int landlength;
+final int ROADMARGIN = 50;
 
 void setup() {
-  size(1000, 1000);
+  size(400, 1000);
   noStroke();
 
-  landwidth = width / TERRAIN_SIZE;
-  landlength = height / TERRAIN_SIZE;
-
-  generateLand(0, 0.15);
+  generateRoad(0, 0.005);
 }
 
 void draw() {
   background(0);
-  displayLand();
+  drawRoad();
 }
 
-void generateLand(float seed, float frequency) {
-  noiseDetail(2);
-  for (int y = 0; y < landlength; y++) {
-    for (int x = 0; x < landwidth; x++) {
-      land.add(new Chunk(noise(x * frequency, y * frequency) * 255, x, y));
-    }
+void mousePressed() {
+  generateRoad(0, 0.002);
+}
+
+void generateRoad(float seed, float frequency) {
+  for (int row = 0; row < height; row++) {
+    road.add(new PVector(map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
+    map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
   }
 }
 
-void displayLand() {
-  for (int y = 0; y < landlength; y++) {
-    for (int x = 0; x < landwidth; x++) {
-      land.get(y * landwidth + x).display();
-    }
+void drawRoad() {
+  for (int row = 0; row < height; row++) {
+    stroke(255);
+    line(road.get(row).x, row, road.get(row).y, row);
   }
 }
