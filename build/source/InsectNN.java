@@ -34,6 +34,8 @@ public void draw() {
   drawRoad();
 
   DUT.display();
+
+  if (!isOnRoad(new PVector(mouseX, mouseY))) ellipse(mouseX, mouseY, 20, 20);
 }
 
 public void generateRoad(long seed, float frequency) {
@@ -52,6 +54,14 @@ public void drawRoad() {
   }
 }
 
+// returns true if a test point is on the road (within the center road)
+public boolean isOnRoad(PVector point) {
+  if (point.y < height) {
+    return (point.x >= road.get(PApplet.parseInt(point.y)).x && point.x <= road.get(PApplet.parseInt(point.y)).y);
+  } else {
+    return false;
+  }
+}
 class Insect {
   // insect properties
   private PVector position;
@@ -87,6 +97,10 @@ class Insect {
 
   public void displayVision() {
     for (PVector v:visions) {
+      // visual cue to see if a vision is detecting off roads
+      if (isOnRoad(v)) stroke(0, 255, 0);
+      else stroke(255, 0, 0);
+
       ellipse(v.x, v.y, 5, 5);
       line(v.x, v.y, position.x, position.y);
     }
