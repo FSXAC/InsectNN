@@ -6,13 +6,13 @@ class Insect {
   private float max_speed = 5;
 
   // vision
-  private final int vision_range = 30;
+  private final int vision_range = 50;
   private PVector[] visions = new PVector[5];
 
   // NeuralNetwork
-  private NeuralNetwork nn = new NeuralNetwork(8, 2, 3); // (in, out, hidden)
+  private NeuralNetwork nn = new NeuralNetwork(7, 2, 3); // (in, out, hidden)
   private Axon[] nnOut = new Axon[2];
-  private float[] input = new float[8];
+  private float[] input = new float[7];
 
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
@@ -27,8 +27,13 @@ class Insect {
 
   void display() {
     noFill();
-    if (isOnRoad(position.x, position.y)) stroke(0, 255, 0);
-    else stroke(255, 0, 0);
+    if (isOnRoad(position.x, position.y)) {
+      stroke(0, 255, 0);
+      max_speed = 6;
+    } else {
+      stroke(255, 0, 0);
+      max_speed = 1;
+    }
     ellipse(position.x, position.y, 20, 20);
 
     // draw vision vector
@@ -86,7 +91,6 @@ class Insect {
       range_mult = (i == 0) ? 1 : 1.0 / abs(i);
       visions[i + 2].x = position.x + sin(heading + (i * PI / 4)) * vision_range * range_mult;
       visions[i + 2].y = position.y - cos(heading + (i * PI / 4)) * vision_range * range_mult;
-
     }
   }
 
@@ -99,8 +103,7 @@ class Insect {
     input[5] = isOnRoad(position.x, position.y) ? 0 : 1;
 
     // add 2 more inputs as x or y
-    input[6] = map(position.x, 0, width, 0, 1);
-    input[7] = map(position.y, 0, height, 0, 1);
+    input[6] = map(position.y, 0, height, 0, 1);
   }
 
   public void changeSpeed(float d_speed) {
