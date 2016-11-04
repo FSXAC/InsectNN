@@ -1,17 +1,18 @@
 class Insect {
-  // insect properties
+  // insect movement properties
   private PVector position;
   private float heading;
   private float speed;
+  private float max_speed = 5;
 
   // vision
-  private final int vision_range = 50;
+  private final int vision_range = 60;
   private PVector[] visions = new PVector[5];
 
   // NeuralNetwork
-  private NeuralNetwork nn = new NeuralNetwork(5, 2, 5);
+  private NeuralNetwork nn = new NeuralNetwork(6, 2, 3); // (in, out, hidden)
   private Axon[] nnOut = new Axon[2];
-  private int[] input = new int[5];
+  private int[] input = new int[6];
 
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
@@ -69,6 +70,9 @@ class Insect {
     // update vision points
     updateVision();
 
+    // get input
+    getInput();
+
     // change speed and heading based on NN
     nnOut = nn.run(input);
     changeSpeed(nnOut[0].get());
@@ -83,15 +87,23 @@ class Insect {
       visions[i + 2].x = position.x + sin(heading + (i * PI / 4)) * vision_range * range_mult;
       visions[i + 2].y = position.y - cos(heading + (i * PI / 4)) * vision_range * range_mult;
 
-      // input to neural network
-      input[i + 2] = isOnRoad(visions[i + 2].x, visions[i + 2].y) ? 0 : 1;
     }
   }
 
-  // TODO: MAKE A METHOD that collects all NN inputs
+  private void getInput() {
+    for (int i = 0; i < 5; i++) {
+      // input to neural network
+      input[i] = isOnRoad(visions[i].x, visions[i].y) ? 0 : 1;
+    }
+    // add the vehicle itself
+    input[5] = isOnRoad(position.x, position.y) ? 0 : 1;
+  }
 
   public void changeSpeed(float d_speed) {
-    speed += d_speed;
+    float new_speed = speed + d_speed;
+    if (new_speed > max_speed) speed = max_speed;
+    else if (new_speed < -max_speed) speed = -max_speed;
+    else speed += d_speed;
   }
 
   public void changeHeading(float d_heading) {

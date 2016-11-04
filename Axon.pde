@@ -61,14 +61,7 @@ class NeuralNetwork {
 
   // forward prop a bunch of times
   public Axon[] run(int[] in) {
-    // take the input, multiply it to first hidden layer of axons
-    // for (int i = 0; i < input_size; i++) {
-    //   for (int j = 0; j < hidden_size; j++) {
-    //     // bias is automatically taken care of
-    //     hidden[j].forward(in[i] * w0[i * input_size + j]);
-    //   }
-    // }
-    int sum;
+    float sum;
     for (int i = 0; i < hidden_size; i++) {
       sum = 0;
       for (int j = 0; j < input_size; j++) {
@@ -81,7 +74,7 @@ class NeuralNetwork {
     for (int i = 0; i < output_size; i++) {
       sum = 0;
       for (int j = 0; j < hidden_size; j++) {
-        sum += hidden[i].get() * w1[i * output_size + hidden_size];
+        sum += hidden[i].get() * w1[i * output_size + j];
       }
       output[i].forward(sum);
     }
@@ -96,7 +89,7 @@ class NeuralNetwork {
 
     // draw rectangle
     noStroke();
-    fill(0, 0, 30);
+    fill(0, 0, 50, 100);
     rect(-20, -20, 180, max(input_size, hidden_size, output_size) * 25 + 20);
     noFill();
 
@@ -154,10 +147,11 @@ class Axon {
   private float value;
 
   Axon(float b) {
-    bias = 0;
+    bias = b;
     value = 0;
   }
 
+  // get new value
   public void forward(float new_value) {
     value = new_value * bias;
   }

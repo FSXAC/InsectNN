@@ -116,14 +116,7 @@ class NeuralNetwork {
 
   // forward prop a bunch of times
   public Axon[] run(int[] in) {
-    // take the input, multiply it to first hidden layer of axons
-    // for (int i = 0; i < input_size; i++) {
-    //   for (int j = 0; j < hidden_size; j++) {
-    //     // bias is automatically taken care of
-    //     hidden[j].forward(in[i] * w0[i * input_size + j]);
-    //   }
-    // }
-    int sum;
+    float sum;
     for (int i = 0; i < hidden_size; i++) {
       sum = 0;
       for (int j = 0; j < input_size; j++) {
@@ -136,7 +129,7 @@ class NeuralNetwork {
     for (int i = 0; i < output_size; i++) {
       sum = 0;
       for (int j = 0; j < hidden_size; j++) {
-        sum += hidden[i].get() * w1[i * output_size + hidden_size];
+        sum += hidden[i].get() * w1[i * output_size + j];
       }
       output[i].forward(sum);
     }
@@ -151,7 +144,7 @@ class NeuralNetwork {
 
     // draw rectangle
     noStroke();
-    fill(0, 0, 30);
+    fill(0, 0, 50, 100);
     rect(-20, -20, 180, max(input_size, hidden_size, output_size) * 25 + 20);
     noFill();
 
@@ -209,10 +202,11 @@ class Axon {
   private float value;
 
   Axon(float b) {
-    bias = 0;
+    bias = b;
     value = 0;
   }
 
+  // get new value
   public void forward(float new_value) {
     value = new_value * bias;
   }
@@ -222,19 +216,20 @@ class Axon {
   }
 }
 class Insect {
-  // insect properties
+  // insect movement properties
   private PVector position;
   private float heading;
   private float speed;
+  private float max_speed = 5;
 
   // vision
-  private final int vision_range = 50;
+  private final int vision_range = 60;
   private PVector[] visions = new PVector[5];
 
   // NeuralNetwork
-  private NeuralNetwork nn = new NeuralNetwork(5, 2, 5);
+  private NeuralNetwork nn = new NeuralNetwork(6, 2, 3); // (in, out, hidden)
   private Axon[] nnOut = new Axon[2];
-  private int[] input = new int[5];
+  private int[] input = new int[6];
 
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
@@ -277,7 +272,6 @@ class Insect {
     text("X: " + position.x + ", Y: " + position.y, 5, 10);
     text("Heading: " + (heading / PI) + "PI, " + (heading / PI * 180) + "deg", 5, 20);
     text("Speed: " + speed, 5, 30);
-    text("NN Input: " + str(input[0]) + str(input[1]) + str(input[2]) + str(input[3]) + str(input[4]), 5, 50);
   }
 
   private void update() {
@@ -293,6 +287,9 @@ class Insect {
     // update vision points
     updateVision();
 
+    // get input
+    getInput();
+
     // change speed and heading based on NN
     nnOut = nn.run(input);
     changeSpeed(nnOut[0].get());
@@ -307,13 +304,23 @@ class Insect {
       visions[i + 2].x = position.x + sin(heading + (i * PI / 4)) * vision_range * range_mult;
       visions[i + 2].y = position.y - cos(heading + (i * PI / 4)) * vision_range * range_mult;
 
-      // input to neural network
-      input[i + 2] = isOnRoad(visions[i + 2].x, visions[i + 2].y) ? 0 : 1;
     }
   }
 
+  private void getInput() {
+    for (int i = 0; i < 5; i++) {
+      // input to neural network
+      input[i] = isOnRoad(visions[i].x, visions[i].y) ? 0 : 1;
+    }
+    // add the vehicle itself
+    input[5] = isOnRoad(position.x, position.y) ? 0 : 1;
+  }
+
   public void changeSpeed(float d_speed) {
-    speed += d_speed;
+    float new_speed = speed + d_speed;
+    if (new_speed > max_speed) speed = max_speed;
+    else if (new_speed < -max_speed) speed = -max_speed;
+    else speed += d_speed;
   }
 
   public void changeHeading(float d_heading) {
