@@ -15,15 +15,11 @@ import java.io.IOException;
 public class InsectNN extends PApplet {
 
 public ArrayList<PVector> road = new ArrayList<PVector>();
-public ArrayList<PVector> trail = new ArrayList<PVector>();
-
-final int SCREEN_WIDTH = 400;
-final int SCREEN_HEIGHT = 1000;
 
 final int MIN_ROADWIDTH = 50;
 final int MAX_ROADWIDTH = 80;
 final int MIN_ROADCENTER = MAX_ROADWIDTH / 2;
-final int MAX_ROADCENTER = SCREEN_WIDTH - MIN_ROADCENTER;
+final int MAX_ROADCENTER = 400 - MIN_ROADCENTER;
 public Insect DUT;
 
 public void setup() {
@@ -57,6 +53,174 @@ public void keyPressed() {
 public void mousePressed() {
   DUT = new Insect();
 }
+// WARNING: THE FOLLOWING CODE IS EXTREMELY INEFFICIENT
+// I'D RATHER USE LINER ALGEBRA BUT I DON'T KNOW HOW TO
+// CONTINUE IF YOU WANT YOUR EYES TO BLEED
+
+class NeuralNetwork {
+  private int input_size, output_size;
+  // private int hidden_layers;
+  private int hidden_size;
+
+  // size of the connections
+  private int to_hidden;
+  private int to_output;
+
+  // nodes / axons
+  private Axon[] hidden;
+  private Axon[] output;
+
+  // connections
+  private float[] w0;
+  private float[] w1;
+
+  NeuralNetwork(int isize, int osize, int hsize) {
+    // axon sizes
+    input_size  = isize;
+    hidden_size = hsize;
+    output_size = osize;
+
+    // connection sizes
+    to_hidden = isize * hsize;
+    to_output = hsize * osize;
+
+    // set up array for each layer of the nodes
+    hidden = new Axon[hsize];
+    output = new Axon[osize];
+
+    // set up array for connections
+    w0 = new float[to_hidden];
+    w1 = new float[to_output];
+
+    // initalize
+    initializeLayers();
+  }
+
+  public void initializeLayers() {
+    // assign random bias for axons
+    for (int i = 0; i < hidden_size; i++) {
+      hidden[i] = new Axon(random(-1, 1));
+    }
+    for (int i = 0; i < output_size; i++) {
+      output[i] = new Axon(random(-1, 1));
+    }
+
+    // assign random weights for connections
+    for (int i = 0; i < to_hidden; i++) {
+      w0[i] = random(-1, 1);
+    }
+    for (int i = 0; i < to_output; i++) {
+      w1[i] = random(-1, 1);
+    }
+  }
+
+  // forward prop a bunch of times
+  public Axon[] run(int[] in) {
+    // take the input, multiply it to first hidden layer of axons
+    // for (int i = 0; i < input_size; i++) {
+    //   for (int j = 0; j < hidden_size; j++) {
+    //     // bias is automatically taken care of
+    //     hidden[j].forward(in[i] * w0[i * input_size + j]);
+    //   }
+    // }
+    int sum;
+    for (int i = 0; i < hidden_size; i++) {
+      sum = 0;
+      for (int j = 0; j < input_size; j++) {
+        sum += in[j] * w0[i * hidden_size + j];
+      }
+      hidden[i].forward(sum);
+    }
+
+    // take the hidden, and prop it to output
+    for (int i = 0; i < output_size; i++) {
+      sum = 0;
+      for (int j = 0; j < hidden_size; j++) {
+        sum += hidden[i].get() * w1[i * output_size + hidden_size];
+      }
+      output[i].forward(sum);
+    }
+
+    displayNN(in);
+    return output;
+  }
+
+  public void displayNN(int[] in) {
+    pushMatrix();
+    translate(220, 30);
+
+    // draw rectangle
+    noStroke();
+    fill(0, 0, 30);
+    rect(-20, -20, 180, max(input_size, hidden_size, output_size) * 25 + 20);
+    noFill();
+
+    // draw input layer
+    for (int i = 0; i < input_size; i++) {
+      fill(map(in[i], -1, 1, 0, 255));
+      ellipse(0, i * 25, 20, 20);
+      fill(0, 0, 255);
+      text(in[i], 0, i * 25);
+    }
+
+    // connection 1
+    strokeWeight(2);
+    for (int j = 0; j < hidden_size; j++) {
+      for (int i = 0; i < input_size; i++) {
+        stroke(map(w0[j * hidden_size + i], -1, 1, 0, 255), 150);
+        line(0, i * 25, 50, j * 25);
+      }
+    }
+    noStroke();
+    strokeWeight(1);
+
+    // draw hidden layer
+    for (int i = 0; i < hidden_size; i++) {
+      fill(map(hidden[i].get(), -1, 1, 0, 255));
+      ellipse(50, i * 25, 20, 20);
+      fill(0, 0, 255);
+      text(hidden[i].get(), 50, i * 25);
+    }
+
+    // connection 2
+    strokeWeight(2);
+    for (int j = 0; j < output_size; j++) {
+      for (int i = 0; i < hidden_size; i++) {
+        stroke(map(w1[j * output_size + i], -1, 1, 0, 255), 150);
+        line(50, i * 25, 100, j * 25);
+      }
+    }
+    noStroke();
+    strokeWeight(1);
+
+    // draw output layer
+    for (int i = 0; i < output_size; i++) {
+      fill(map(output[i].get(), -1, 1, 0, 255));
+      ellipse(100, i * 25, 20, 20);
+      fill(0, 0, 255);
+      text(output[i].get(), 100, i * 25);
+    }
+    popMatrix();
+  }
+}
+
+class Axon {
+  private float bias;
+  private float value;
+
+  Axon(float b) {
+    bias = 0;
+    value = 0;
+  }
+
+  public void forward(float new_value) {
+    value = new_value * bias;
+  }
+
+  public float get() {
+    return value;
+  }
+}
 class Insect {
   // insect properties
   private PVector position;
@@ -66,6 +230,11 @@ class Insect {
   // vision
   private final int vision_range = 50;
   private PVector[] visions = new PVector[5];
+
+  // NeuralNetwork
+  private NeuralNetwork nn = new NeuralNetwork(5, 2, 5);
+  private Axon[] nnOut = new Axon[2];
+  private int[] input = new int[5];
 
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
@@ -79,7 +248,8 @@ class Insect {
   }
 
   public void display() {
-    if (isOnRoad(position)) stroke(0, 255, 0);
+    noFill();
+    if (isOnRoad(position.x, position.y)) stroke(0, 255, 0);
     else stroke(255, 0, 0);
     ellipse(position.x, position.y, 20, 20);
 
@@ -93,7 +263,7 @@ class Insect {
   public void displayVision() {
     for (PVector v:visions) {
       // visual cue to see if a vision is detecting off roads
-      if (isOnRoad(v)) stroke(0, 255, 0);
+      if (isOnRoad(v.x, v.y)) stroke(0, 255, 0);
       else stroke(255, 0, 0);
 
       ellipse(v.x, v.y, 5, 5);
@@ -102,10 +272,12 @@ class Insect {
   }
 
   public void displayInfo() {
-    text("FPS: " + frameRate, 5, 0);
+    fill(255);
+    text("FPS: " + frameRate, 5, 40);
     text("X: " + position.x + ", Y: " + position.y, 5, 10);
     text("Heading: " + (heading / PI) + "PI, " + (heading / PI * 180) + "deg", 5, 20);
     text("Speed: " + speed, 5, 30);
+    text("NN Input: " + str(input[0]) + str(input[1]) + str(input[2]) + str(input[3]) + str(input[4]), 5, 50);
   }
 
   private void update() {
@@ -120,6 +292,11 @@ class Insect {
 
     // update vision points
     updateVision();
+
+    // change speed and heading based on NN
+    nnOut = nn.run(input);
+    changeSpeed(nnOut[0].get());
+    changeHeading(nnOut[1].get());
   }
 
   private void updateVision() {
@@ -129,6 +306,9 @@ class Insect {
       range_mult = (i == 0) ? 1 : 1.0f / abs(i);
       visions[i + 2].x = position.x + sin(heading + (i * PI / 4)) * vision_range * range_mult;
       visions[i + 2].y = position.y - cos(heading + (i * PI / 4)) * vision_range * range_mult;
+
+      // input to neural network
+      input[i + 2] = isOnRoad(visions[i + 2].x, visions[i + 2].y) ? 0 : 1;
     }
   }
 
@@ -166,15 +346,13 @@ public void drawRoad() {
 }
 
 // returns true if a test point is on the road (within the center road)
-public boolean isOnRoad(PVector point) {
-  if (point.y < height && point.y >= 0) {
-    return (point.x >= road.get(PApplet.parseInt(point.y)).x && point.x <= road.get(PApplet.parseInt(point.y)).y);
+public boolean isOnRoad(float x, float y) {
+  if (y < height && y >= 0) {
+    return (x >= road.get(PApplet.parseInt(y)).x && x <= road.get(PApplet.parseInt(y)).y);
   } else {
     return false;
   }
 }
-
-// draw the trail of the 
   public void settings() {  size(400, 1000); }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "--present", "--window-color=#272727", "--stop-color=#cccccc", "InsectNN" };

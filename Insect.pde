@@ -8,6 +8,11 @@ class Insect {
   private final int vision_range = 50;
   private PVector[] visions = new PVector[5];
 
+  // NeuralNetwork
+  private NeuralNetwork nn = new NeuralNetwork(5, 2, 5);
+  private Axon[] nnOut = new Axon[2];
+  private int[] input = new int[5];
+
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
     heading = 2 * PI;
@@ -20,7 +25,8 @@ class Insect {
   }
 
   void display() {
-    if (isOnRoad(position)) stroke(0, 255, 0);
+    noFill();
+    if (isOnRoad(position.x, position.y)) stroke(0, 255, 0);
     else stroke(255, 0, 0);
     ellipse(position.x, position.y, 20, 20);
 
@@ -34,7 +40,7 @@ class Insect {
   void displayVision() {
     for (PVector v:visions) {
       // visual cue to see if a vision is detecting off roads
-      if (isOnRoad(v)) stroke(0, 255, 0);
+      if (isOnRoad(v.x, v.y)) stroke(0, 255, 0);
       else stroke(255, 0, 0);
 
       ellipse(v.x, v.y, 5, 5);
@@ -43,10 +49,12 @@ class Insect {
   }
 
   void displayInfo() {
-    text("FPS: " + frameRate, 5, 0);
+    fill(255);
+    text("FPS: " + frameRate, 5, 40);
     text("X: " + position.x + ", Y: " + position.y, 5, 10);
     text("Heading: " + (heading / PI) + "PI, " + (heading / PI * 180) + "deg", 5, 20);
     text("Speed: " + speed, 5, 30);
+    text("NN Input: " + str(input[0]) + str(input[1]) + str(input[2]) + str(input[3]) + str(input[4]), 5, 50);
   }
 
   private void update() {
@@ -61,6 +69,11 @@ class Insect {
 
     // update vision points
     updateVision();
+
+    // change speed and heading based on NN
+    nnOut = nn.run(input);
+    changeSpeed(nnOut[0].get());
+    changeHeading(nnOut[1].get());
   }
 
   private void updateVision() {
@@ -70,6 +83,9 @@ class Insect {
       range_mult = (i == 0) ? 1 : 1.0 / abs(i);
       visions[i + 2].x = position.x + sin(heading + (i * PI / 4)) * vision_range * range_mult;
       visions[i + 2].y = position.y - cos(heading + (i * PI / 4)) * vision_range * range_mult;
+
+      // input to neural network
+      input[i + 2] = isOnRoad(visions[i + 2].x, visions[i + 2].y) ? 0 : 1;
     }
   }
 

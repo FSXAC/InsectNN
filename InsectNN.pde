@@ -1,13 +1,9 @@
 public ArrayList<PVector> road = new ArrayList<PVector>();
-public ArrayList<PVector> trail = new ArrayList<PVector>();
-
-final int SCREEN_WIDTH = 400;
-final int SCREEN_HEIGHT = 1000;
 
 final int MIN_ROADWIDTH = 50;
 final int MAX_ROADWIDTH = 80;
 final int MIN_ROADCENTER = MAX_ROADWIDTH / 2;
-final int MAX_ROADCENTER = SCREEN_WIDTH - MIN_ROADCENTER;
+final int MAX_ROADCENTER = 400 - MIN_ROADCENTER;
 public Insect DUT;
 
 void setup() {

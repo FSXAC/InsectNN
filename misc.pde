@@ -22,12 +22,10 @@ void drawRoad() {
 }
 
 // returns true if a test point is on the road (within the center road)
-boolean isOnRoad(PVector point) {
-  if (point.y < height && point.y >= 0) {
-    return (point.x >= road.get(int(point.y)).x && point.x <= road.get(int(point.y)).y);
+boolean isOnRoad(float x, float y) {
+  if (y < height && y >= 0) {
+    return (x >= road.get(int(y)).x && x <= road.get(int(y)).y);
   } else {
     return false;
   }
 }
-
-// draw the trail of the 
