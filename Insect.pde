@@ -54,7 +54,6 @@ class Insect {
     text("X: " + position.x + ", Y: " + position.y, 5, 10);
     text("Heading: " + (heading / PI) + "PI, " + (heading / PI * 180) + "deg", 5, 20);
     text("Speed: " + speed, 5, 30);
-    text("NN Input: " + str(input[0]) + str(input[1]) + str(input[2]) + str(input[3]) + str(input[4]), 5, 50);
   }
 
   private void update() {
@@ -88,6 +87,8 @@ class Insect {
       input[i + 2] = isOnRoad(visions[i + 2].x, visions[i + 2].y) ? 0 : 1;
     }
   }
+
+  // TODO: MAKE A METHOD that collects all NN inputs
 
   public void changeSpeed(float d_speed) {
     speed += d_speed;
