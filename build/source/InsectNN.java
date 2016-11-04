@@ -15,24 +15,32 @@ import java.io.IOException;
 public class InsectNN extends PApplet {
 
 public ArrayList<PVector> road = new ArrayList<PVector>();
+public ArrayList<PVector> trail = new ArrayList<PVector>();
+
+final int SCREEN_WIDTH = 400;
+final int SCREEN_HEIGHT = 1000;
+
 final int MIN_ROADWIDTH = 50;
-final int MAX_ROADWIDTH = 130;
-final int MIN_ROADCENTER = 100;
-final int MAX_ROADCENTER = 300;
+final int MAX_ROADWIDTH = 80;
+final int MIN_ROADCENTER = MAX_ROADWIDTH / 2;
+final int MAX_ROADCENTER = SCREEN_WIDTH - MIN_ROADCENTER;
 public Insect DUT;
 
 public void setup() {
   
   noFill();
+  background(0);
 
-  generateRoad(31415, 0.005f, 0.005f);
+  generateRoad(31415, 0.008f, 0.003f);
 
   DUT = new Insect();
 }
 
 public void draw() {
   background(0);
+
   drawRoad();
+  // drawTrail();
 
   DUT.display();
 }
@@ -45,6 +53,10 @@ public void keyPressed() {
   if      (key == 'w') DUT.changeSpeed(0.1f);
   else if (key == 's') DUT.changeSpeed(-0.1f);
 }
+
+public void mousePressed() {
+  DUT = new Insect();
+}
 class Insect {
   // insect properties
   private PVector position;
@@ -56,7 +68,7 @@ class Insect {
   private PVector[] visions = new PVector[5];
 
   Insect() {
-    position = new PVector(width / 2, 900);
+    position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
     heading = 2 * PI;
     speed = 1;
 
@@ -133,23 +145,15 @@ class Insect {
 public void generateRoad(long seed, float width_freq, float center_freq) {
   noiseSeed(seed);
   for (int row = 0; row < height; row++) {
-    // road.add(new PVector(
-    //   map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
-    //   map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
-
     // get width of the road
     float roadwidth  = map(noise(row * width_freq), 0, 1, MIN_ROADWIDTH, MAX_ROADWIDTH);
 
     // get center of the road
-    float roadcenter = map(noise(row * center_freq), 0, 1, MIN_ROADCENTER, MAX_ROADCENTER);
+    float roadcenter = map(noise((row + seed) * center_freq), 0, 1, MIN_ROADCENTER, MAX_ROADCENTER);
 
     road.add(new PVector(
       roadcenter - roadwidth / 2, roadcenter + roadwidth / 2
       ));
-
-    // road.add(new PVector(
-    //   map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
-    //   map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
   }
 }
 
@@ -169,6 +173,8 @@ public boolean isOnRoad(PVector point) {
     return false;
   }
 }
+
+// draw the trail of the 
   public void settings() {  size(400, 1000); }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "--present", "--window-color=#272727", "--stop-color=#cccccc", "InsectNN" };

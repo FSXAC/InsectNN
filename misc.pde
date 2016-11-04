@@ -1,23 +1,15 @@
 void generateRoad(long seed, float width_freq, float center_freq) {
   noiseSeed(seed);
   for (int row = 0; row < height; row++) {
-    // road.add(new PVector(
-    //   map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
-    //   map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
-
     // get width of the road
     float roadwidth  = map(noise(row * width_freq), 0, 1, MIN_ROADWIDTH, MAX_ROADWIDTH);
 
     // get center of the road
-    float roadcenter = map(noise(row * center_freq), 0, 1, MIN_ROADCENTER, MAX_ROADCENTER);
+    float roadcenter = map(noise((row + seed) * center_freq), 0, 1, MIN_ROADCENTER, MAX_ROADCENTER);
 
     road.add(new PVector(
       roadcenter - roadwidth / 2, roadcenter + roadwidth / 2
       ));
-
-    // road.add(new PVector(
-    //   map(noise(row * frequency), 0, 1, ROADMARGIN, width / 2),
-    //   map(noise(row * frequency + 1), 0, 1, width / 2, width - ROADMARGIN)));
   }
 }
 
@@ -37,3 +29,5 @@ boolean isOnRoad(PVector point) {
     return false;
   }
 }
+
+// draw the trail of the 

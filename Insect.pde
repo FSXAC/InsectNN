@@ -9,7 +9,7 @@ class Insect {
   private PVector[] visions = new PVector[5];
 
   Insect() {
-    position = new PVector(width / 2, 900);
+    position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
     heading = 2 * PI;
     speed = 1;
 
