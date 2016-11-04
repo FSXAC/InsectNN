@@ -58,8 +58,8 @@ public void mousePressed() {
 // CONTINUE IF YOU WANT YOUR EYES TO BLEED
 
 class NeuralNetwork {
+  // size of nodes
   private int input_size, output_size;
-  // private int hidden_layers;
   private int hidden_size;
 
   // size of the connections
@@ -73,6 +73,9 @@ class NeuralNetwork {
   // connections
   private float[] w0;
   private float[] w1;
+
+  private final float weight_range = 1;
+  private final float bias_range = 1;
 
   NeuralNetwork(int isize, int osize, int hsize) {
     // axon sizes
@@ -99,23 +102,23 @@ class NeuralNetwork {
   public void initializeLayers() {
     // assign random bias for axons
     for (int i = 0; i < hidden_size; i++) {
-      hidden[i] = new Axon(random(-1, 1));
+      hidden[i] = new Axon(random(-bias_range, bias_range));
     }
     for (int i = 0; i < output_size; i++) {
-      output[i] = new Axon(random(-1, 1));
+      output[i] = new Axon(random(-bias_range, bias_range));
     }
 
     // assign random weights for connections
     for (int i = 0; i < to_hidden; i++) {
-      w0[i] = random(-1, 1);
+      w0[i] = random(-weight_range, weight_range);
     }
     for (int i = 0; i < to_output; i++) {
-      w1[i] = random(-1, 1);
+      w1[i] = random(-weight_range, weight_range);
     }
   }
 
   // forward prop a bunch of times
-  public Axon[] run(int[] in) {
+  public Axon[] run(float[] in) {
     float sum;
     for (int i = 0; i < hidden_size; i++) {
       sum = 0;
@@ -138,7 +141,7 @@ class NeuralNetwork {
     return output;
   }
 
-  public void displayNN(int[] in) {
+  public void displayNN(float[] in) {
     pushMatrix();
     translate(220, 30);
 
@@ -150,7 +153,7 @@ class NeuralNetwork {
 
     // draw input layer
     for (int i = 0; i < input_size; i++) {
-      fill(map(in[i], -1, 1, 0, 255));
+      fill(map(in[i], 0, 1, 0, 255));
       ellipse(0, i * 25, 20, 20);
       fill(0, 0, 255);
       text(in[i], 0, i * 25);
@@ -208,11 +211,15 @@ class Axon {
 
   // get new value
   public void forward(float new_value) {
-    value = new_value * bias;
+    value = sigmoid(new_value * bias);
   }
 
   public float get() {
     return value;
+  }
+
+  private float sigmoid(float x) {
+    return (2 / (1 + pow(3, -x)) - 1);
   }
 }
 class Insect {
@@ -223,18 +230,18 @@ class Insect {
   private float max_speed = 5;
 
   // vision
-  private final int vision_range = 60;
+  private final int vision_range = 30;
   private PVector[] visions = new PVector[5];
 
   // NeuralNetwork
-  private NeuralNetwork nn = new NeuralNetwork(6, 2, 3); // (in, out, hidden)
+  private NeuralNetwork nn = new NeuralNetwork(8, 2, 3); // (in, out, hidden)
   private Axon[] nnOut = new Axon[2];
-  private int[] input = new int[6];
+  private float[] input = new float[8];
 
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
     heading = 2 * PI;
-    speed = 1;
+    speed = 0;
 
     // instantiate vision points
     for (int i = 0; i < 5; i++) {
@@ -314,6 +321,10 @@ class Insect {
     }
     // add the vehicle itself
     input[5] = isOnRoad(position.x, position.y) ? 0 : 1;
+
+    // add 2 more inputs as x or y
+    input[6] = map(position.x, 0, width, 0, 1);
+    input[7] = map(position.y, 0, height, 0, 1);
   }
 
   public void changeSpeed(float d_speed) {

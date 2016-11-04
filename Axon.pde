@@ -3,8 +3,8 @@
 // CONTINUE IF YOU WANT YOUR EYES TO BLEED
 
 class NeuralNetwork {
+  // size of nodes
   private int input_size, output_size;
-  // private int hidden_layers;
   private int hidden_size;
 
   // size of the connections
@@ -18,6 +18,9 @@ class NeuralNetwork {
   // connections
   private float[] w0;
   private float[] w1;
+
+  private final float weight_range = 1;
+  private final float bias_range = 1;
 
   NeuralNetwork(int isize, int osize, int hsize) {
     // axon sizes
@@ -44,23 +47,23 @@ class NeuralNetwork {
   void initializeLayers() {
     // assign random bias for axons
     for (int i = 0; i < hidden_size; i++) {
-      hidden[i] = new Axon(random(-1, 1));
+      hidden[i] = new Axon(random(-bias_range, bias_range));
     }
     for (int i = 0; i < output_size; i++) {
-      output[i] = new Axon(random(-1, 1));
+      output[i] = new Axon(random(-bias_range, bias_range));
     }
 
     // assign random weights for connections
     for (int i = 0; i < to_hidden; i++) {
-      w0[i] = random(-1, 1);
+      w0[i] = random(-weight_range, weight_range);
     }
     for (int i = 0; i < to_output; i++) {
-      w1[i] = random(-1, 1);
+      w1[i] = random(-weight_range, weight_range);
     }
   }
 
   // forward prop a bunch of times
-  public Axon[] run(int[] in) {
+  public Axon[] run(float[] in) {
     float sum;
     for (int i = 0; i < hidden_size; i++) {
       sum = 0;
@@ -83,7 +86,7 @@ class NeuralNetwork {
     return output;
   }
 
-  void displayNN(int[] in) {
+  void displayNN(float[] in) {
     pushMatrix();
     translate(220, 30);
 
@@ -95,7 +98,7 @@ class NeuralNetwork {
 
     // draw input layer
     for (int i = 0; i < input_size; i++) {
-      fill(map(in[i], -1, 1, 0, 255));
+      fill(map(in[i], 0, 1, 0, 255));
       ellipse(0, i * 25, 20, 20);
       fill(0, 0, 255);
       text(in[i], 0, i * 25);
@@ -153,10 +156,14 @@ class Axon {
 
   // get new value
   public void forward(float new_value) {
-    value = new_value * bias;
+    value = sigmoid(new_value * bias);
   }
 
   public float get() {
     return value;
+  }
+
+  private float sigmoid(float x) {
+    return (2 / (1 + pow(3, -x)) - 1);
   }
 }

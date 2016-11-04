@@ -6,18 +6,18 @@ class Insect {
   private float max_speed = 5;
 
   // vision
-  private final int vision_range = 60;
+  private final int vision_range = 30;
   private PVector[] visions = new PVector[5];
 
   // NeuralNetwork
-  private NeuralNetwork nn = new NeuralNetwork(6, 2, 3); // (in, out, hidden)
+  private NeuralNetwork nn = new NeuralNetwork(8, 2, 3); // (in, out, hidden)
   private Axon[] nnOut = new Axon[2];
-  private int[] input = new int[6];
+  private float[] input = new float[8];
 
   Insect() {
     position = new PVector((road.get(height - 20).x + road.get(height - 20).y) / 2, height - 20);
     heading = 2 * PI;
-    speed = 1;
+    speed = 0;
 
     // instantiate vision points
     for (int i = 0; i < 5; i++) {
@@ -97,6 +97,10 @@ class Insect {
     }
     // add the vehicle itself
     input[5] = isOnRoad(position.x, position.y) ? 0 : 1;
+
+    // add 2 more inputs as x or y
+    input[6] = map(position.x, 0, width, 0, 1);
+    input[7] = map(position.y, 0, height, 0, 1);
   }
 
   public void changeSpeed(float d_speed) {
